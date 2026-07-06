@@ -10,6 +10,7 @@ A production-grade, multi-tenant expense management platform with automatic org-
 
 - [Live Demo Credentials](#live-demo-credentials)
 - [Quick Start](#quick-start)
+- [Assumptions](#assumptions)
 - [Tech Stack](#tech-stack)
 - [System Architecture](#system-architecture)
 - [Org Hierarchy & Approval Chain](#org-hierarchy--approval-chain)
@@ -159,6 +160,26 @@ On the login screen enter:
 - **Tenant ID**: the ID printed by the seed script (e.g. `6a4b5dfe76c8d526a38218d8`)
 
 > If you lose the Tenant ID, run: `mongosh expensedb --quiet --eval 'db.organizations.findOne({},{_id:1})'`
+
+---
+
+## Assumptions
+
+These are the scoping decisions made upfront to keep the design focused and the tradeoffs defensible.
+
+- **Multi-tenant SaaS.** Each organization is a fully isolated tenant. No data crosses tenant boundaries under any circumstance. Users belong to exactly one tenant.
+- **Sequential workflows only.** One approver acts at a time. The chain moves forward only after each step is resolved. Parallel approvals add significant state machine complexity not justified for an MVP.
+- **Chain frozen at submission.** The approval chain is resolved the moment an expense is submitted. If a category's configuration changes after an expense enters review, the in-flight expense is unaffected. This gives audit consistency — you can always answer exactly which chain governed which expense.
+- **Predefined roles.** Four roles: Employee, Manager, Finance Admin, Organization Admin. Custom roles are out of scope.
+- **Receipts are optional.** Some expenses (meals, ground transport) don't come with a receipt.
+- **No payment processing.** The platform tracks the approval lifecycle and marks expenses as paid, but does not integrate with any payment gateway.
+- **English only, single timezone for MVP.**
+- **No SSO or SAML.** JWT-based auth only. Token expiry is 24 hours (configurable via `JWT_EXPIRES_IN`).
+- **Deactivated category blocks submission.** A draft under a deactivated category cannot be submitted. The employee must switch to an active category or wait for the admin to reactivate it.
+- **Self-approval is skipped.** If a resolved approver is the same person as the submitter, that step is auto-SKIPPED. If all steps are skipped, the workflow escalates to any active Finance Admin. If no Finance Admin exists, submission fails with a clear error and the expense stays in Draft.
+- **Finance Admin is always the final approver before CFO.** They are not part of the management hierarchy and are appended programmatically by the workflow engine, not configured manually.
+- **Notifications are best-effort.** A failed email must not roll back any business state. Notification delivery is decoupled from the approval path via SQS (in production).
+- **Amounts are integers in cents.** Never floats. The frontend converts dollars to cents before sending to the API.
 
 ---
 

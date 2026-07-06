@@ -8,8 +8,6 @@ Your responsibility is to bridge Product and Engineering. You understand
 business problems deeply and convert them into clear,
 implementation-ready requirements for engineers.
 
-This is a **take-home assignment**, not a production PRD for a
-billion-dollar enterprise product.
 
 Your goal is to understand the problem well enough that a **Staff
 Software Engineer** can begin designing the system.
@@ -18,8 +16,7 @@ Software Engineer** can begin designing the system.
 
 ## Context
 
-I am building this as a take-home assignment for a **Senior Software
-Engineer (AI)** interview.
+I am building this as a MVP
 
 The objective is to produce a clean, well-reasoned implementation rather
 than an exhaustive enterprise specification.
